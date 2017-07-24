@@ -35,6 +35,10 @@ dependencies {
     testCompile sourceSets.impl.output
     runtime configurations.apiRuntime
     runtime configurations.implRuntime
+    runtime(
+        [group: 'org.springframework', name: 'spring-core', version: '4.3.10.RELEASE'],
+        [group: 'org.springframework', name: 'spring-aop', version: '4.3.10.RELEASE']
+    )
 }
 
 jar {
