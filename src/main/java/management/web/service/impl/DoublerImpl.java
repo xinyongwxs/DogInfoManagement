@@ -1,6 +1,6 @@
-package doubler.impl;
+package management.web.service.impl;
 
-import doubler.Doubler;
+import management.web.service.Doubler;
 
 public class DoublerImpl implements Doubler {
     public int doubleIt(int toDouble) {

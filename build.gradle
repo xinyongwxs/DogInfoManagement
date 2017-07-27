@@ -1,44 +1,20 @@
-apply plugin: "java"
 apply plugin: "maven"
 apply plugin: "war"
 
 group = "Stonna"
-version = 1.0
-
-webAppDirName="src/webapp"
+version = new ProjectVersion(0, 1)
 
 repositories {
     mavenCentral()
 }
 
-sourceSets.all { set ->
-    def jarTask = task("${set.name}Jar", type: Jar) {
-        baseName = baseName + "-$set.name"
-        from set.output
-    }
-
-    artifacts {
-        archives jarTask
-    }
-}
-
-sourceSets {
-    api
-    impl
-}
-
 dependencies {
-    apiCompile 'commons-codec:commons-codec:1.5'
-
-    implCompile sourceSets.api.output
-    implCompile 'commons-lang:commons-lang:2.6'
+    compile 'commons-codec:commons-codec:1.5'
+    compile 'commons-lang:commons-lang:2.6'
 
     testCompile 'junit:junit:4.9'
-    testCompile sourceSets.api.output
-    testCompile sourceSets.impl.output
-    runtime configurations.apiRuntime
-    runtime configurations.implRuntime
-    implCompile(
+    
+    compile(
         [group: 'org.springframework', name: 'spring-core', version: '4.3.10.RELEASE'],
         [group: 'org.springframework', name: 'spring-aop', version: '4.3.10.RELEASE'],
         [group: 'org.springframework', name: 'spring-web', version: '4.3.10.RELEASE'],
@@ -48,33 +24,56 @@ dependencies {
     )
 }
 
-jar {
-    from sourceSets.api.output
-    from sourceSets.impl.output
-}
-
 war {
 	archiveName="DogInfoManagement.war"
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: uri("${buildDir}/repo"))
-
-            addFilter("main") { artifact, file -> artifact.name == project.name }
-            ["api", "impl"].each { type ->
-                addFilter(type) { artifact, file -> artifact.name.endsWith("-$type") }
-                
-                // We now have to map our configurations to the correct maven scope for each pom
-                ["compile", "runtime"].each { scope ->
-                    configuration = configurations[type + scope.capitalize()]
-                    ["main", type].each { pomName ->
-                        pom(pomName).scopeMappings.addMapping 1, configuration, scope
-                    }
-                }
-            }
-
-        }
-    }
+task first << {
+	logger.quiet "first"
 }
+
+task second << {
+	logger.quiet "second"
+}
+
+second.finalizedBy first
+
+class ProjectVersion {
+	Integer major
+	Integer minor
+	Boolean release
+	
+	ProjectVersion(Integer major, Integer minor) {
+		this.major = major
+		this.minor = minor
+		this.release = Boolean.FALSE
+	}
+	
+	ProjectVersion(Integer major, Integer minor, Boolean release) {
+		this(major, minor)
+		this.release = release
+	}
+	
+	@Override
+	String toString() {
+		"$major.$minor${release ? '' : '-SNAPSHOT'}"
+	}
+}
+
+task printVersion(dependsOn: [second, first]) {
+	group = 'versioning'
+	description = 'Prints project version.'
+	doFirst {
+		logger.quiet "Before reading the project version"
+	}
+	
+	doLast {
+		println "Version: $version"
+	}
+}
+
+task third << {
+	logger.quiet "third"
+}
+
+third.dependsOn('printVersion')

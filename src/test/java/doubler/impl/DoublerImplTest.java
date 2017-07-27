@@ -1,6 +1,8 @@
 package doubler.impl;
 
-import doubler.Doubler;
+import management.web.service.Doubler;
+import management.web.service.impl.DoublerImpl;
+
 import org.junit.Test;
 
 public class DoublerImplTest {
