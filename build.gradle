@@ -2,7 +2,6 @@ apply plugin: "maven"
 apply plugin: "war"
 
 group = "Stonna"
-version = new ProjectVersion(0, 1)
 
 repositories {
     mavenCentral()
@@ -28,16 +27,6 @@ war {
 	archiveName="DogInfoManagement.war"
 }
 
-task first << {
-	logger.quiet "first"
-}
-
-task second << {
-	logger.quiet "second"
-}
-
-second.finalizedBy first
-
 class ProjectVersion {
 	Integer major
 	Integer minor
@@ -60,7 +49,29 @@ class ProjectVersion {
 	}
 }
 
-task printVersion(dependsOn: [second, first]) {
+ext.versionFile = file('version.properties')
+
+task loadVersion {
+	project.version = readVersion()
+}
+
+ProjectVersion readVersion() {
+	logger.quiet 'Reading the version file.'
+	
+	if (!versionFile.exists()) {
+		throw new GradleException("Required version file does not exist: $versionFile.canonicalPath")
+	}
+	
+	Properties versionProps = new Properties()
+	
+	versionFile.withInputStream {
+		stream -> versionProps.load(stream)
+	}
+	
+	new ProjectVersion(versionProps.major.toInteger(), versionProps.minor.toInteger(), versionProps.release.toBoolean())
+}
+
+task printVersion {
 	group = 'versioning'
 	description = 'Prints project version.'
 	doFirst {
@@ -71,9 +82,3 @@ task printVersion(dependsOn: [second, first]) {
 		println "Version: $version"
 	}
 }
-
-task third << {
-	logger.quiet "third"
-}
-
-third.dependsOn('printVersion')
